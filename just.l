@@ -11,7 +11,7 @@ ID ([a-zA-Z][a-zA-Z0-9]*)|(("_"|"$")[a-zA-Z0-9]+)|("foo."{KEYWORD})
 
 OPERATOR "+"|"-"|"*"|"/"|"%"|"**"|"++"|"--"|"!"|"=="|"!="|">"|"<"|">="|"<="|"&&"|"||"|"&"|"|"|"^"|"~"|"<<"|">>"|">>>"|"?"|":"|"?:"|"?:="|"?."|"."|".&"|".@"|"=~"|"==~"|"~="|"<<="|">>="|">>>="|"+="|"-="|"*="|"/="|"%="|"&="|"|="|"^="|"as"|"in"|"is"|"to"|"in"|"==="|"as"
 
-SEPARATOR "<"|">"|"("|")"|"["|"]"|"{"|"}"
+SEPARATOR "<"|">"|"("|")"|"["|"]"|"{"|"}"|"="
 printf("\n \n \n") ;
 
 %%
@@ -19,42 +19,60 @@ printf("\n \n \n") ;
 printf("\n\n");
 
 (?:\/\/[^\n]*) {
-    printf("Single Line Comment: %s\n", yytext);
+    printf("%s\tSingle Line Comment\n", yytext);
 }
 
 \/\*[\s\S]*?\*\/ {
-    printf("Multi Line Comment: %s\n", yytext);
+    printf("%s\tMulti Line Comment\n", yytext);
+}
+
+{KEYWORD} {
+    printf("%s\tKeyword\n", yytext);
+}
+
+{OPERATOR} {
+    {
+        printf("%s\t:Operator\n", yytext);
+    }
+ }
+{SEPARATOR} {
+    {
+        printf("%s\t:SEPARATOR\n", yytext);
+    }
+ }
+ 
+{ID}"."{KEYWORD} {printf("%s\t:Keyword as an Identifier using dot\n", yytext);}
+
+
+{ID} {
+    if (!strstr(yytext, "`")) {
+        printf("%s\t:Regular Identifier\n", yytext);
+    }
+ }
+ 
+ 
+\"[^\"\n]*\"              {/* LITERALS */ printf("%s\t:Double Quoted String Literal\n", yytext); }
+'[^'\n]*'                 {/* LITERALS */ printf("%s\t:Single Quoted String Literal\n", yytext); }
+\'\'\'[^\'\\]*\'\'\'      {/* LITERALS */ printf("%s\t:Triple Quoted String Literal\n", yytext); }
+\/[^\/]*\/                {printf("%s\t:Slashy string\n", yytext);}
+\$/([^$/]|\/[^$])*\/\$    {printf("Dollar-slashy string: %s\n", yytext);}
+
+
+[0-9]+                    {/* LITERALS */ printf("%s\t:Integer Literal\n", yytext); }
+[0-9]+\.[0-9]+            {/* LITERALS */ printf("%s\t:Float Literal\n", yytext); }
+
+
+ //Function name k liye hai isme kuch change karna padega becoz ye keyword nhi bta rha
+"def"+" "+{ID}*\(  {
+    char* functionName = yytext + 3; // Skip the "def" keyword
+        functionName[strlen(functionName) - 1] = '\0'; // Remove the opening parenthesis
+        printf("%s\t:User-defined function\n", functionName);
 }
 
 {GSTRING} {
     printf("GString: %s\n", yytext);
 }
-
-{KEYWORD} {
-    printf("Keyword: %s\n", yytext);
-}
-
-{ID} {
-    if (!strstr(yytext, "`")) {
-        printf("Regular Identifier: %s\n", yytext);
-    }
- }
- 
-{OPERATOR} {
-    {
-        printf("Operator: %s\n", yytext);
-    }
- }
-{SEPARATOR} {
-    {
-        printf("SEPARATOR: %s\n", yytext);
-    }
- }
- 
-\"[^\"\n]*\"   {/* LITERALS */ printf("Double Quoted String Literal: %s\n", yytext); }
-'[^'\n]*'      {/* LITERALS */ printf("Single Quoted String Literal: %s\n", yytext); }
-[0-9]+\.[0-9]+            {/* LITERALS */ printf("Float Literal: %s\n", yytext); }
-" "            { printf("");}
+" "   { printf("");}
 
  
 %%
@@ -65,8 +83,9 @@ int yywrap()
 }
 
 int main() {
-printf("\n \n \n") ;
+    printf("Enter String \n");
     yylex();
+    printf("OUTPUT String \n");
     return 0;
 }
 
