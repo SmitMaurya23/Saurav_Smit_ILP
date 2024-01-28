@@ -1,0 +1,14 @@
+// Define a simple class
+class Greet {
+    // Define a method to print a greeting
+    def sayHello() {
+        println "Hello, Groovy!"
+    }
+}
+
+// Create an instance of the Greet class
+def greeter = new Greet()
+
+// Call the sayHello method to print the greeting
+greeter.sayHello()
+
